@@ -9,6 +9,10 @@
 
 Welcome to the JavaML Library!
 
+JavaML is a collection of machine learning algorithms implemented in Java. It provides a standard interface for each algorithm, making it a library aimed primarily at software engineers and programmers.
+
+For inquiries or collaboration opportunities, feel free to reach out to us at 📩 [connect@javaml.com](mailto:connect@javaml.com).
+
 <a href="https://next.ossinsight.io/widgets/official/compose-user-dashboard-stats?user_id=174118942" target="_blank" style="display: block" align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-user-dashboard-stats/thumbnail.png?user_id=174118942&image_size=auto&color_scheme=dark" width="815" height="auto">
@@ -103,3 +107,7 @@ You can click the Preview link to take a look at your changes.
     <img alt="Top Contributors of pingcap/tidb - Last 28 days" src="https://next.ossinsight.io/widgets/official/compose-recent-top-contributors/thumbnail.png?repo_id=174118942&image_size=auto&color_scheme=light" width="815" height="auto">
   </picture>
 </a>
+
+## License
+
+This project is licensed under the Apache License, Version 2.0 - see the [LICENSE](LICENSE) file for details.
