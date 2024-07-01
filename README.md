@@ -1,4 +1,4 @@
-# JavaML Library
+# [JavaML Library](https://javaml.com)
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Java Version](https://img.shields.io/badge/java-11%2B-blue)](https://www.java.com/en/)
@@ -57,6 +57,8 @@ Welcome to the JavaML Library!
 - **Scalability and Parallel Processing:**
   - Scalable algorithms for distributed computing environments.
   - Parallel processing capabilities for enhancing performance on multi-core systems.
+
+For more information, visit [JavaML.com](https://javaml.com).
 
 ## Installation
 
