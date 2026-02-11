@@ -546,6 +546,185 @@ public final class Metrics {
     }
     
     /**
+     * Calculates mean absolute percentage error (MAPE).
+     * 
+     * @param yTrue the true values
+     * @param yPred the predicted values
+     * @return the MAPE score
+     */
+    public static double meanAbsolutePercentageError(NDArray yTrue, NDArray yPred) {
+        validateInputs(yTrue, yPred);
+        
+        double sum = 0.0;
+        int count = 0;
+        
+        for (int i = 0; i < yTrue.getSize(); i++) {
+            double trueVal = yTrue.get(i);
+            if (Math.abs(trueVal) > 1e-10) { // Avoid division by zero
+                sum += Math.abs((trueVal - yPred.get(i)) / trueVal);
+                count++;
+            }
+        }
+        
+        return count > 0 ? (sum / count) * 100.0 : Double.NaN;
+    }
+    
+    /**
+     * Calculates median absolute error.
+     * 
+     * @param yTrue the true values
+     * @param yPred the predicted values
+     * @return the median absolute error
+     */
+    public static double medianAbsoluteError(NDArray yTrue, NDArray yPred) {
+        validateInputs(yTrue, yPred);
+        
+        double[] errors = new double[yTrue.getSize()];
+        for (int i = 0; i < yTrue.getSize(); i++) {
+            errors[i] = Math.abs(yTrue.get(i) - yPred.get(i));
+        }
+        
+        Arrays.sort(errors);
+        int mid = errors.length / 2;
+        if (errors.length % 2 == 0) {
+            return (errors[mid - 1] + errors[mid]) / 2.0;
+        } else {
+            return errors[mid];
+        }
+    }
+    
+    /**
+     * Calculates explained variance score.
+     * 
+     * @param yTrue the true values
+     * @param yPred the predicted values
+     * @return the explained variance score
+     */
+    public static double explainedVarianceScore(NDArray yTrue, NDArray yPred) {
+        validateInputs(yTrue, yPred);
+        
+        double yMean = 0.0;
+        for (int i = 0; i < yTrue.getSize(); i++) {
+            yMean += yTrue.get(i);
+        }
+        yMean /= yTrue.getSize();
+        
+        double variance = 0.0;
+        double explainedVariance = 0.0;
+        
+        for (int i = 0; i < yTrue.getSize(); i++) {
+            double diff = yTrue.get(i) - yMean;
+            variance += diff * diff;
+            
+            double predDiff = yTrue.get(i) - yPred.get(i);
+            explainedVariance += predDiff * predDiff;
+        }
+        
+        if (variance == 0.0) {
+            return explainedVariance == 0.0 ? 1.0 : 0.0;
+        }
+        
+        return 1.0 - (explainedVariance / variance);
+    }
+    
+    /**
+     * Calculates maximum error.
+     * 
+     * @param yTrue the true values
+     * @param yPred the predicted values
+     * @return the maximum error
+     */
+    public static double maxError(NDArray yTrue, NDArray yPred) {
+        validateInputs(yTrue, yPred);
+        
+        double maxErr = 0.0;
+        for (int i = 0; i < yTrue.getSize(); i++) {
+            double err = Math.abs(yTrue.get(i) - yPred.get(i));
+            maxErr = Math.max(maxErr, err);
+        }
+        
+        return maxErr;
+    }
+    
+    /**
+     * Calculates log loss (cross-entropy loss).
+     * 
+     * @param yTrue the true labels
+     * @param yPred the predicted probabilities
+     * @return the log loss
+     */
+    public static double logLoss(NDArray yTrue, NDArray yPred) {
+        validateInputs(yTrue, yPred);
+        
+        double loss = 0.0;
+        for (int i = 0; i < yTrue.getSize(); i++) {
+            double trueVal = yTrue.get(i);
+            double predVal = Math.max(1e-15, Math.min(1 - 1e-15, yPred.get(i)));
+            
+            if (trueVal == 1.0) {
+                loss -= Math.log(predVal);
+            } else {
+                loss -= Math.log(1.0 - predVal);
+            }
+        }
+        
+        return loss / yTrue.getSize();
+    }
+    
+    /**
+     * Calculates Cohen's kappa score.
+     * 
+     * @param yTrue the true labels
+     * @param yPred the predicted labels
+     * @return Cohen's kappa score
+     */
+    public static double cohenKappaScore(NDArray yTrue, NDArray yPred) {
+        validateInputs(yTrue, yPred);
+        
+        // Build confusion matrix
+        Set<Double> classes = new HashSet<>();
+        for (int i = 0; i < yTrue.getSize(); i++) {
+            classes.add(yTrue.get(i));
+            classes.add(yPred.get(i));
+        }
+        
+        List<Double> classList = new ArrayList<>(classes);
+        int nClasses = classList.size();
+        int[][] confusion = new int[nClasses][nClasses];
+        
+        for (int i = 0; i < yTrue.getSize(); i++) {
+            int trueIdx = classList.indexOf(yTrue.get(i));
+            int predIdx = classList.indexOf(yPred.get(i));
+            confusion[trueIdx][predIdx]++;
+        }
+        
+        // Calculate observed agreement
+        int observed = 0;
+        for (int i = 0; i < nClasses; i++) {
+            observed += confusion[i][i];
+        }
+        double po = (double) observed / yTrue.getSize();
+        
+        // Calculate expected agreement
+        double pe = 0.0;
+        for (int i = 0; i < nClasses; i++) {
+            int rowSum = 0;
+            int colSum = 0;
+            for (int j = 0; j < nClasses; j++) {
+                rowSum += confusion[i][j];
+                colSum += confusion[j][i];
+            }
+            pe += ((double) rowSum * colSum) / (yTrue.getSize() * yTrue.getSize());
+        }
+        
+        if (pe == 1.0) {
+            return 1.0;
+        }
+        
+        return (po - pe) / (1.0 - pe);
+    }
+    
+    /**
      * Validates that inputs are not null and have the same size.
      */
     private static void validateInputs(NDArray yTrue, NDArray yPred) {
