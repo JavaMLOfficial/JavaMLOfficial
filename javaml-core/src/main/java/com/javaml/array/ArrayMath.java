@@ -239,6 +239,174 @@ public final class ArrayMath {
         return elementWise(a, Math::tanh);
     }
     
+    /**
+     * Computes inverse hyperbolic sine of array elements.
+     * 
+     * @param a the array
+     * @return a new array with arcsinh values
+     */
+    public static NDArray arcsinh(NDArray a) {
+        return elementWise(a, x -> Math.log(x + Math.sqrt(x * x + 1)));
+    }
+    
+    /**
+     * Computes inverse hyperbolic cosine of array elements.
+     * 
+     * @param a the array
+     * @return a new array with arccosh values
+     */
+    public static NDArray arccosh(NDArray a) {
+        return elementWise(a, x -> {
+            if (x < 1.0) return Double.NaN;
+            return Math.log(x + Math.sqrt(x * x - 1));
+        });
+    }
+    
+    /**
+     * Computes inverse hyperbolic tangent of array elements.
+     * 
+     * @param a the array
+     * @return a new array with arctanh values
+     */
+    public static NDArray arctanh(NDArray a) {
+        return elementWise(a, x -> {
+            if (Math.abs(x) >= 1.0) return Double.NaN;
+            return 0.5 * Math.log((1 + x) / (1 - x));
+        });
+    }
+    
+    /**
+     * Rounds to the nearest integer (alias for around).
+     * 
+     * @param a the array
+     * @return a new array with rounded values
+     */
+    public static NDArray rint(NDArray a) {
+        return around(a);
+    }
+    
+    /**
+     * Computes floating-point remainder (fmod).
+     * 
+     * @param a the first array
+     * @param b the second array
+     * @return a new array with remainder values
+     */
+    public static NDArray fmod(NDArray a, NDArray b) {
+        return elementWise(a, b, (x, y) -> y != 0 ? x % y : Double.NaN);
+    }
+    
+    /**
+     * Computes remainder of division.
+     * 
+     * @param a the first array
+     * @param b the second array
+     * @return a new array with remainder values
+     */
+    public static NDArray remainder(NDArray a, NDArray b) {
+        return mod(a, b);
+    }
+    
+    /**
+     * Checks for NaN values.
+     * 
+     * @param a the array
+     * @return a boolean array (as double: 1.0 for NaN, 0.0 otherwise)
+     */
+    public static NDArray isnan(NDArray a) {
+        return elementWise(a, x -> Double.isNaN(x) ? 1.0 : 0.0);
+    }
+    
+    /**
+     * Checks for infinite values.
+     * 
+     * @param a the array
+     * @return a boolean array (as double: 1.0 for Inf, 0.0 otherwise)
+     */
+    public static NDArray isinf(NDArray a) {
+        return elementWise(a, x -> Double.isInfinite(x) ? 1.0 : 0.0);
+    }
+    
+    /**
+     * Checks for finite values.
+     * 
+     * @param a the array
+     * @return a boolean array (as double: 1.0 for finite, 0.0 otherwise)
+     */
+    public static NDArray isfinite(NDArray a) {
+        return elementWise(a, x -> Double.isFinite(x) ? 1.0 : 0.0);
+    }
+    
+    /**
+     * Computes maximum ignoring NaN values.
+     * 
+     * @param a the array
+     * @return the maximum value (ignoring NaN)
+     */
+    public static double nanmax(NDArray a) {
+        validateArray(a);
+        double[] data = a.getData();
+        double max = Double.NEGATIVE_INFINITY;
+        boolean found = false;
+        
+        for (double value : data) {
+            if (!Double.isNaN(value)) {
+                if (!found || value > max) {
+                    max = value;
+                    found = true;
+                }
+            }
+        }
+        
+        return found ? max : Double.NaN;
+    }
+    
+    /**
+     * Computes minimum ignoring NaN values.
+     * 
+     * @param a the array
+     * @return the minimum value (ignoring NaN)
+     */
+    public static double nanmin(NDArray a) {
+        validateArray(a);
+        double[] data = a.getData();
+        double min = Double.POSITIVE_INFINITY;
+        boolean found = false;
+        
+        for (double value : data) {
+            if (!Double.isNaN(value)) {
+                if (!found || value < min) {
+                    min = value;
+                    found = true;
+                }
+            }
+        }
+        
+        return found ? min : Double.NaN;
+    }
+    
+    /**
+     * Computes mean ignoring NaN values.
+     * 
+     * @param a the array
+     * @return the mean value (ignoring NaN)
+     */
+    public static double nanmean(NDArray a) {
+        validateArray(a);
+        double[] data = a.getData();
+        double sum = 0.0;
+        int count = 0;
+        
+        for (double value : data) {
+            if (!Double.isNaN(value)) {
+                sum += value;
+                count++;
+            }
+        }
+        
+        return count > 0 ? sum / count : Double.NaN;
+    }
+    
     // ========== Exponential and Logarithmic Functions ==========
     
     /**

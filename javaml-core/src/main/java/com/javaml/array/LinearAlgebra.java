@@ -297,6 +297,84 @@ public final class LinearAlgebra {
     }
     
     /**
+     * Computes vector dot product.
+     * 
+     * @param a the first vector
+     * @param b the second vector
+     * @return the dot product
+     */
+    public static double vdot(NDArray a, NDArray b) {
+        validateArrays(a, b);
+        
+        if (a.getNdims() != 1 || b.getNdims() != 1) {
+            throw new IllegalArgumentException("vdot() requires 1D arrays");
+        }
+        
+        return inner(a, b);
+    }
+    
+    /**
+     * Computes matrix/vector norm.
+     * 
+     * @param array the input array
+     * @param ord the order of the norm (1, 2, or -1 for inf)
+     * @return the norm
+     */
+    public static double norm(NDArray array, int ord) {
+        validateArray(array);
+        
+        if (array.getNdims() == 1) {
+            // Vector norm
+            double[] data = array.getData();
+            if (ord == 1) {
+                double sum = 0.0;
+                for (double value : data) {
+                    sum += Math.abs(value);
+                }
+                return sum;
+            } else if (ord == 2) {
+                double sum = 0.0;
+                for (double value : data) {
+                    sum += value * value;
+                }
+                return Math.sqrt(sum);
+            } else if (ord == -1) {
+                double max = 0.0;
+                for (double value : data) {
+                    max = Math.max(max, Math.abs(value));
+                }
+                return max;
+            }
+        } else if (array.getNdims() == 2) {
+            // Matrix norm (Frobenius for ord=2)
+            if (ord == 2) {
+                double sum = 0.0;
+                int[] shape = array.getShape();
+                for (int i = 0; i < shape[0]; i++) {
+                    for (int j = 0; j < shape[1]; j++) {
+                        double value = array.get(i, j);
+                        sum += value * value;
+                    }
+                }
+                return Math.sqrt(sum);
+            }
+        }
+        
+        throw new UnsupportedOperationException(
+            "norm() with ord=" + ord + " not yet fully implemented");
+    }
+    
+    /**
+     * Computes matrix/vector norm (default: Frobenius/2-norm).
+     * 
+     * @param array the input array
+     * @return the norm
+     */
+    public static double norm(NDArray array) {
+        return norm(array, 2);
+    }
+    
+    /**
      * Validates that an array is not null.
      */
     private static void validateArray(NDArray array) {

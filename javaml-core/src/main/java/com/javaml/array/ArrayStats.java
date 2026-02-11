@@ -335,6 +335,202 @@ public final class ArrayStats {
     }
     
     /**
+     * Computes correlation coefficient matrix.
+     * 
+     * @param X the input data (2D: samples x features)
+     * @return correlation coefficient matrix
+     */
+    public static NDArray corrcoef(NDArray X) {
+        if (X == null) {
+            throw new IllegalArgumentException("Input data cannot be null");
+        }
+        if (X.getNdims() != 2) {
+            throw new IllegalArgumentException("Input must be 2D for corrcoef");
+        }
+        
+        int[] shape = X.getShape();
+        int nFeatures = shape[1];
+        
+        NDArray corr = new NDArray(nFeatures, nFeatures);
+        
+        for (int i = 0; i < nFeatures; i++) {
+            for (int j = 0; j < nFeatures; j++) {
+                double[] featureI = new double[shape[0]];
+                double[] featureJ = new double[shape[0]];
+                
+                for (int k = 0; k < shape[0]; k++) {
+                    featureI[k] = X.get(k, i);
+                    featureJ[k] = X.get(k, j);
+                }
+                
+                NDArray arrI = new NDArray(featureI, featureI.length);
+                NDArray arrJ = new NDArray(featureJ, featureJ.length);
+                
+                double meanI = mean(arrI);
+                double meanJ = mean(arrJ);
+                double stdI = std(arrI);
+                double stdJ = std(arrJ);
+                
+                double correlation = 0.0;
+                if (stdI > 0 && stdJ > 0) {
+                    for (int k = 0; k < shape[0]; k++) {
+                        correlation += (featureI[k] - meanI) * (featureJ[k] - meanJ);
+                    }
+                    correlation /= (shape[0] - 1) * stdI * stdJ;
+                }
+                
+                corr.set(correlation, i, j);
+            }
+        }
+        
+        return corr;
+    }
+    
+    /**
+     * Computes covariance matrix.
+     * 
+     * @param X the input data (2D: samples x features)
+     * @return covariance matrix
+     */
+    public static NDArray cov(NDArray X) {
+        if (X == null) {
+            throw new IllegalArgumentException("Input data cannot be null");
+        }
+        if (X.getNdims() != 2) {
+            throw new IllegalArgumentException("Input must be 2D for cov");
+        }
+        
+        int[] shape = X.getShape();
+        int nFeatures = shape[1];
+        
+        NDArray cov = new NDArray(nFeatures, nFeatures);
+        
+        for (int i = 0; i < nFeatures; i++) {
+            for (int j = 0; j < nFeatures; j++) {
+                double[] featureI = new double[shape[0]];
+                double[] featureJ = new double[shape[0]];
+                
+                for (int k = 0; k < shape[0]; k++) {
+                    featureI[k] = X.get(k, i);
+                    featureJ[k] = X.get(k, j);
+                }
+                
+                NDArray arrI = new NDArray(featureI, featureI.length);
+                NDArray arrJ = new NDArray(featureJ, featureJ.length);
+                
+                double meanI = mean(arrI);
+                double meanJ = mean(arrJ);
+                
+                double covariance = 0.0;
+                for (int k = 0; k < shape[0]; k++) {
+                    covariance += (featureI[k] - meanI) * (featureJ[k] - meanJ);
+                }
+                covariance /= (shape[0] - 1);
+                
+                cov.set(covariance, i, j);
+            }
+        }
+        
+        return cov;
+    }
+    
+    /**
+     * Computes histogram of array.
+     * 
+     * @param array the input array
+     * @param bins number of bins
+     * @return array containing [histogram, bin_edges]
+     */
+    public static NDArray[] histogram(NDArray array, int bins) {
+        if (array == null) {
+            throw new IllegalArgumentException("Input array cannot be null");
+        }
+        
+        double min = min(array);
+        double max = max(array);
+        
+        double[] histogram = new double[bins];
+        double binWidth = (max - min) / bins;
+        double[] binEdges = new double[bins + 1];
+        
+        for (int i = 0; i <= bins; i++) {
+            binEdges[i] = min + i * binWidth;
+        }
+        
+        double[] data = array.getData();
+        for (double value : data) {
+            int binIdx = (int) Math.min((value - min) / binWidth, bins - 1);
+            histogram[binIdx]++;
+        }
+        
+        return new NDArray[]{
+            new NDArray(histogram, histogram.length),
+            new NDArray(binEdges, binEdges.length)
+        };
+    }
+    
+    /**
+     * Counts number of occurrences of each value.
+     * 
+     * @param array the input array
+     * @return array of counts
+     */
+    public static NDArray bincount(NDArray array) {
+        if (array == null) {
+            throw new IllegalArgumentException("Input array cannot be null");
+        }
+        
+        double[] data = array.getData();
+        int max = 0;
+        for (double value : data) {
+            max = Math.max(max, (int) value);
+        }
+        
+        double[] counts = new double[max + 1];
+        for (double value : data) {
+            int idx = (int) value;
+            if (idx >= 0 && idx <= max) {
+                counts[idx]++;
+            }
+        }
+        
+        return new NDArray(counts, counts.length);
+    }
+    
+    /**
+     * Returns the indices of the bins to which each value belongs.
+     * 
+     * @param array the input array
+     * @param bins the bin edges
+     * @return array of bin indices
+     */
+    public static NDArray digitize(NDArray array, NDArray bins) {
+        if (array == null || bins == null) {
+            throw new IllegalArgumentException("Input arrays cannot be null");
+        }
+        
+        double[] data = array.getData();
+        double[] binEdges = bins.getData();
+        double[] result = new double[data.length];
+        
+        for (int i = 0; i < data.length; i++) {
+            int binIdx = 0;
+            for (int j = 0; j < binEdges.length - 1; j++) {
+                if (data[i] >= binEdges[j] && data[i] < binEdges[j + 1]) {
+                    binIdx = j;
+                    break;
+                }
+            }
+            if (data[i] >= binEdges[binEdges.length - 1]) {
+                binIdx = binEdges.length - 1;
+            }
+            result[i] = binIdx;
+        }
+        
+        return new NDArray(result, result.length);
+    }
+    
+    /**
      * Validates that an array is not null.
      */
     private static void validateArray(NDArray array) {
